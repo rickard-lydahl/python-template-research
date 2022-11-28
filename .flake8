@@ -1,0 +1,6 @@
+[flake8]
+max-line-length = 88
+# E203 - this warning is not PEP 8 compliant, conflicts with Black
+extend-ignore = E203
+
+per-file-ignores =

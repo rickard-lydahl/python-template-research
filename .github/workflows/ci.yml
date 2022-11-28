@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  POETRY_VERSION: 1.1.13
+
+jobs:
+  style:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry==${{ env.POETRY_VERSION }}
+          poetry install --no-root
+      - name: Check formatting with Black
+        run: poetry run black --quiet --check --diff .
+  build:
+    strategy:
+      matrix:
+        runner: ["windows-2022", "ubuntu-20.04"]
+        py: ["3.8"]
+    runs-on: ${{ matrix.runner }}
+    needs: style
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.py }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.py }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry==${{ env.POETRY_VERSION }}
+          poetry install --no-root
+      - name: Install project
+        run: |
+          poetry install
+      - name: Test
+        run: |
+          poetry run pytest
+      - name: Build distribution
+        run: |
+          poetry build
+      - name: 'Upload artifacts'
+        uses: actions/upload-artifact@v3
+        with:
+          name: packages_${{ github.sha }}-${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
+          path: dist/
+          if-no-files-found: error
