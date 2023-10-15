@@ -34,7 +34,7 @@ jobs:
   build:
     strategy:
       matrix:
-        runner: ["windows-2022", "ubuntu-20.04"]
+        runner: ["ubuntu-20.04"]
         py: ["3.10"]
     runs-on: ${{ matrix.runner }}
     needs: style
